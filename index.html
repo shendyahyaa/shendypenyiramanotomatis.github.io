@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Monitoring Tanaman Otomatis</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <header>
+        <h1>Monitoring Tanaman Otomatis</h1>
+        <button id="btn-keluar">Keluar</button>
+    </header>
+    <div class="container">
+        <div class="sensor-data">
+            <h2>Data Sensor</h2>
+            <p>Kelembaban Tanah: <span id="kelembaban">-</span></p>
+            <p>Status Tanah: <span id="status-tanah">-</span></p>
+            <p>Penyiraman Hari Ini: <span id="penyiraman-hari-ini">-</span></p>
+        </div>
+        <div class="controls">
+            <h2>Kendali Penyiraman Air</h2>
+            <button id="btn-manual-penyiraman" class="manual-control"><span id="status-penyiraman">Otomatis</span></button>
+        </div>
+        <div class="controls">
+            <h2>Kendali Penyemprotan Pestisida</h2>
+            <button id="btn-manual-pestisida" class="manual-control"><span id="status-pestisida">Otomatis</span></button>
+        </div>
+        <div class="jadwal">
+            <h2>Jadwal Pestisida Otomatis</h2>
+            <input type="time" id="jadwal-pestisida">
+            <select id="hari-pestisida">
+                <option value="senin">Senin</option>
+                <option value="selasa">Selasa</option>
+                <option value="rabu">Rabu</option>
+                <option value="kamis">Kamis</option>
+                <option value="jumat">Jumat</option>
+                <option value="sabtu">Sabtu</option>
+            </select>
+            <button id="btn-set-jadwal">Atur Jadwal</button>
+        </div>        
+    </div>
+    <script>
+    document.addEventListener("DOMContentLoaded", function() {
+        const btnManualPenyiraman = document.getElementById("btn-manual-penyiraman");
+        const btnManualPestisida = document.getElementById("btn-manual-pestisida");
+        const btnSetJadwal = document.getElementById("btn-set-jadwal");
+        const btnKeluar = document.getElementById("btn-keluar");
+
+        // Fungsi untuk mengambil data sensor dari backend
+        function getSensorData() {
+            fetch('/api/moisture') // Ganti dengan endpoint yang sesuai di backend Anda
+                .then(response => response.json())
+                .then(data => {
+                    document.getElementById("kelembaban").textContent = data.moisture;
+                    document.getElementById("status-tanah").textContent = data.soilStatus;
+                    document.getElementById("penyiraman-hari-ini").textContent = data.wateringToday;
+                })
+                .catch(error => console.error('Error:', error));
+        }
+
+        // Panggil fungsi untuk mengambil data sensor saat halaman dimuat
+        getSensorData();
+
+        // Event listener untuk tombol "Keluar"
+        btnKeluar.addEventListener("click", function() {
+            alert("Anda telah keluar dari sistem monitoring.");
+            // Di sini Anda bisa menambahkan logika untuk keluar dari sistem monitoring
+        });
+
+        // Event listener untuk tombol "Atur Jadwal"
+        btnSetJadwal.addEventListener("click", function() {
+            // Di sini Anda bisa menambahkan logika untuk mengatur jadwal penyemprotan pestisida
+            alert("Jadwal penyemprotan pestisida telah diatur!");
+        });
+
+        // Event listener untuk tombol kontrol penyiraman air manual/otomatis
+        btnManualPenyiraman.addEventListener("click", function() {
+            const statusPenyiraman = document.getElementById("status-penyiraman");
+            const mode = statusPenyiraman.textContent === "Otomatis" ? "manual" : "auto";
+            fetch('/api/watering', { method: 'POST', body: JSON.stringify({ mode }) })
+                .then(response => response.text())
+                .then(data => {
+                    alert("Status penyiraman air diubah menjadi " + mode);
+                    getSensorData(); // Ambil ulang data sensor setelah mengubah status penyiraman
+                })
+                .catch(error => console.error('Error:', error));
+        });
+
+        // Event listener untuk tombol kontrol penyemprotan pestisida manual/otomatis
+        btnManualPestisida.addEventListener("click", function() {
+            const statusPestisida = document.getElementById("status-pestisida");
+            const mode = statusPestisida.textContent === "Otomatis" ? "manual" : "auto";
+            fetch('/api/pesticide', { method: 'POST', body: JSON.stringify({ mode }) })
+                .then(response => response.text())
+                .then(data => {
+                    alert("Status penyemprotan pestisida diubah menjadi " + mode);
+                    // Di sini Anda bisa menambahkan logika tambahan jika diperlukan
+                })
+                .catch(error => console.error('Error:', error));
+        });
+    });
+    </script>
+</body>
+</html>
